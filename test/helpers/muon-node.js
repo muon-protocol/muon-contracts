@@ -2,6 +2,10 @@ const axios = require('axios');
 
 const BASE_URL = process.env.MUON_NODE_GATEWAY
 
+function request(params){
+	return axios.post(BASE_URL, params).then(({data}) => data)
+}
+
 function ethCallContract(address, method, params, abi) {
 	let filteredAbi = [
 		abi.find(({name, type}) => (name === method && type === 'function'))
@@ -35,6 +39,7 @@ function ethAddBridgeToken(mainTokenAddress, mainNetwork, targetNetwork) {
 }
 
 module.exports = {
+	request,
 	ethCallContract,
 	ethAddBridgeToken,
 }
