@@ -1,4 +1,10 @@
+var schnorrLib = artifacts.require('./SchnorrSECP256K1.sol')
 var muon = artifacts.require('./MuonV02.sol')
+var { toBN } = web3.utils
+
+const pubKeyAddress = process.env.MUON_MASTER_WALLET_PUB_ADDRESS
+const pubKeyX = process.env.MUON_MASTER_WALLET_PUB_X
+const pubKeyYParity = process.env.MUON_MASTER_WALLET_PUB_Y_PARITY
 
 function parseArgv() {
   let args = process.argv.slice(2)
@@ -13,19 +19,21 @@ function parseArgv() {
 
 module.exports = function (deployer) {
   deployer.then(async () => {
-    // let params = parseArgv()
+    let params = parseArgv()
 
-    await deployer.deploy(muon)
-
-    // let muonAddress = null
-    // if(!!params['muonAddress']){
-    // 	muonAddress = params['muonAddress'];
-    // }
-    // else{
-    // 	let deployedMuon = await await deployer.deploy(muon);
-    // 	muonAddress = deployedMuon.address;
-    // }
-
-    //let deployedPresale = await deployer.deploy(presale, "0xd0e5D73785A1b179628F873306Ae5911dD29Aed3")
+    let libAddress = null
+    if (!!params['libAddress']) {
+      libAddress = params['muonAddress']
+    } else {
+      let deployedSchnorrLib = await await deployer.deploy(schnorrLib)
+      libAddress = deployedSchnorrLib.address
+    }
+    let deployedMuon = await deployer.deploy(
+      muon,
+      libAddress,
+      pubKeyAddress,
+      pubKeyX,
+      pubKeyYParity
+    )
   })
 }
