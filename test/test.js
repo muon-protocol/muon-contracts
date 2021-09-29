@@ -4,8 +4,9 @@ const truffleAssert = require('truffle-assertions');
 const {expect, muonNode} = require('./helpers')
 const {toBN} = web3.utils;
 
+const pubKeyAddress = process.env.MUON_MASTER_WALLET_PUB_ADDRESS;
 const pubKeyX = process.env.MUON_MASTER_WALLET_PUB_X;
-const pubKeyYParity = toBN(process.env.MUON_MASTER_WALLET_PUB_Y).mod(toBN(2)).toString();
+const pubKeyYParity = process.env.MUON_MASTER_WALLET_PUB_Y_PARITY;
 
 console.log({pubKeyX, pubKeyYParity})
 
@@ -15,7 +16,7 @@ contract("MuonV02", (accounts) => {
 
     before(async () => {
         let lib = await SchnorrLib.new({from: owner})
-        muon = await MuonV02.new(lib.address, pubKeyX, pubKeyYParity, {from: owner});
+        muon = await MuonV02.new(lib.address, pubKeyAddress, pubKeyX, pubKeyYParity, {from: owner});
     });
 
     describe("Test TSS verification", async () => {
@@ -26,11 +27,12 @@ contract("MuonV02", (accounts) => {
             assert(result.confirmed === true, 'Muon request not confirmed')
 
             let reqId = `0x${result.cid.substr(1)}`;
-            let signature = result.signatures[0].signature.split(',')[0];
+            let groupAddress = result.signatures[0].owner;
+            let signature = result.signatures[0].signature;
             let nonceAddress = result.data.init.nonceAddress;
             let msgHash = web3.utils.soliditySha3('done')
 
-            let verifyResult = await muon.verify(reqId, msgHash, signature, nonceAddress);
+            let verifyResult = await muon.verify(reqId, msgHash, [signature], [groupAddress], [nonceAddress]);
             expect.eventEmitted(verifyResult, 'Transaction', (ev) => {
                 return ev.reqId == reqId;
             })
