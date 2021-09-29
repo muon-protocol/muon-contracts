@@ -7,7 +7,7 @@ import "./SchnorrSECP256K1.sol";
 
 contract MuonV02 is Ownable {
 
-    event Transaction(bytes reqId, address[] group);
+    event Transaction(bytes reqId, address[] groups);
 
     SchnorrSECP256K1 schnorr;
 
