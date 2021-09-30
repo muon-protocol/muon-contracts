@@ -48,11 +48,11 @@ contract MuonV02 is Ownable {
         return true;
     }
 
-    function addGroupKeyPublic(address _address, uint256 _pubX, uint8 _pubYParity) public onlyOwner {
+    function addGroupPublicKey(address _address, uint256 _pubX, uint8 _pubYParity) public onlyOwner {
         groupsPubKey[_address] = PublicKey(_pubX, _pubYParity);
     }
 
-    function removeGroupKeyPublic(address _groupAddress) public onlyOwner {
+    function removeGroupPublicKey(address _groupAddress) public onlyOwner {
         delete groupsPubKey[_groupAddress];
     }
 
