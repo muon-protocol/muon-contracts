@@ -16,6 +16,12 @@ contract MuonV02 is Ownable {
         uint8 parity;
     }
 
+    struct SchnorrSign {
+        uint256 signature;
+        address owner;
+        address nonce;
+    }
+
     mapping(address => PublicKey) public groupsPubKey;
 
     constructor(address _schnorrLib, address _groupAddress, uint256 _groupPubKeyX, uint8 _groupPubKeyYParity){
@@ -23,28 +29,19 @@ contract MuonV02 is Ownable {
         schnorr = SchnorrSECP256K1(_schnorrLib);
     }
 
-    function verify(
-        bytes calldata _reqId, 
-        uint256 _hash, 
-        uint256[] calldata _sigs, 
-        address[] calldata _groupWallets, 
-        address[] calldata _nonces
-    ) 
-        public returns (bool) 
+    function verify(bytes calldata _reqId, uint256 _hash, SchnorrSign[] calldata _sigs) public returns (bool) 
     {
         require(_sigs.length > 0, '!_sigs');
-        require(_sigs.length == _groupWallets.length, '!_groupWallets');
-        require(_sigs.length == _nonces.length, '!_nonces');
 
         PublicKey memory pub;
-        address lastGroup;
+        address[] memory groups = new address[](_sigs.length);
         for(uint i=0 ; i<_sigs.length; i++){
-            pub = groupsPubKey[_groupWallets[i]];
-            if(!schnorr.verifySignature(pub.x, pub.parity, _sigs[i], _hash, _nonces[i]) || _groupWallets[i] <= lastGroup)
+            pub = groupsPubKey[_sigs[i].owner];
+            if(!schnorr.verifySignature(pub.x, pub.parity, _sigs[i].signature, _hash, _sigs[i].nonce) || (i>0 && _sigs[i].owner <= groups[i-1]))
                 return false;
-            lastGroup = _groupWallets[i];
+            groups[i] = _sigs[i].owner;
         }
-        emit Transaction(_reqId, _groupWallets);
+        emit Transaction(_reqId, groups);
         return true;
     }
 
