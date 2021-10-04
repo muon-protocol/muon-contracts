@@ -131,4 +131,8 @@ contract SchnorrSECP256K1 {
       bytes32(mulmod(msgChallenge, signingPubKeyX, Q)));
     return nonceTimesGeneratorAddress == recoveredAddress;
   }
+
+  function validatePubKey (uint256 signingPubKeyX) external pure {
+    require(signingPubKeyX < HALF_Q, "Public-key x >= HALF_Q");
+  }
 }

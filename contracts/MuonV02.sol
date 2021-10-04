@@ -5,6 +5,12 @@ pragma solidity >=0.7.0 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./SchnorrSECP256K1.sol";
 
+struct SchnorrSign {
+    uint256 signature;
+    address owner;
+    address nonce;
+}
+
 contract MuonV02 is Ownable {
 
     event Transaction(bytes reqId, address[] groups);
@@ -16,17 +22,11 @@ contract MuonV02 is Ownable {
         uint8 parity;
     }
 
-    struct SchnorrSign {
-        uint256 signature;
-        address owner;
-        address nonce;
-    }
-
     mapping(address => PublicKey) public groupsPubKey;
 
     constructor(address _schnorrLib, address _groupAddress, uint256 _groupPubKeyX, uint8 _groupPubKeyYParity){
-        groupsPubKey[_groupAddress] = PublicKey(_groupPubKeyX, _groupPubKeyYParity);
         schnorr = SchnorrSECP256K1(_schnorrLib);
+        addGroupPublicKey(address _groupAddress, uint256 _groupPubKeyX, uint8 _groupPubKeyYParit)
     }
 
     function verify(bytes calldata _reqId, uint256 _hash, SchnorrSign[] calldata _sigs) public returns (bool) 
@@ -46,6 +46,7 @@ contract MuonV02 is Ownable {
     }
 
     function addGroupPublicKey(address _address, uint256 _pubX, uint8 _pubYParity) public onlyOwner {
+        schnorr.validatePubKey(_pubX);
         groupsPubKey[_address] = PublicKey(_pubX, _pubYParity);
     }
 
