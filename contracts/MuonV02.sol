@@ -26,7 +26,7 @@ contract MuonV02 is Ownable {
 
     constructor(address _schnorrLib, address _groupAddress, uint256 _groupPubKeyX, uint8 _groupPubKeyYParity){
         schnorr = SchnorrSECP256K1(_schnorrLib);
-        addGroupPublicKey(address _groupAddress, uint256 _groupPubKeyX, uint8 _groupPubKeyYParit)
+        addGroupPublicKey(_groupAddress, _groupPubKeyX, _groupPubKeyYParity);
     }
 
     function verify(bytes calldata _reqId, uint256 _hash, SchnorrSign[] calldata _sigs) public returns (bool) 
