@@ -32,7 +32,12 @@ contract("MuonV02", (accounts) => {
             let nonceAddress = result.data.init.nonceAddress;
             let msgHash = web3.utils.soliditySha3('done')
 
-            let verifyResult = await muon.verify(reqId, msgHash, [signature], [groupAddress], [nonceAddress]);
+            let sigs = [{
+                signature: signature,
+                owner: groupAddress,
+                nonce: nonceAddress
+            }]
+            let verifyResult = await muon.verify(reqId, msgHash, sigs);
             expect.eventEmitted(verifyResult, 'Transaction', (ev) => {
                 return ev.reqId == reqId;
             })
