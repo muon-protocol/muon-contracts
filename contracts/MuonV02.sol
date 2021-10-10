@@ -37,6 +37,8 @@ contract MuonV02 is Ownable {
         address[] memory groups = new address[](_sigs.length);
         for(uint i=0 ; i<_sigs.length; i++){
             pub = groupsPubKey[_sigs[i].owner];
+            if(pub.x == 0)
+                return false;
             if(!schnorr.verifySignature(pub.x, pub.parity, _sigs[i].signature, _hash, _sigs[i].nonce) || (i>0 && _sigs[i].owner <= groups[i-1]))
                 return false;
             groups[i] = _sigs[i].owner;
