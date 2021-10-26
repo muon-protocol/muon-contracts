@@ -149,12 +149,17 @@ module.exports = {
       provider: () =>
         new HDWalletProvider(
           process.env.PK,
+          //"https://polygon-mainnet.g.alchemy.com/v2/wHB1PUL0tJLWyCyl5uwhdTzsnr4m9pER"
           'https://rpc-mainnet.maticvigil.com/'
+          //"https://rpc-mainnet.matic.network/"
+          //"https://polygon-mainnet.infura.io/v3/"+process.env.INFURA_KEY
         ),
       network_id: 137,
       confirmations: 2,
-      timeoutBlocks: 200,
-      gas: 5500000,
+      //timeoutBlocks: 200000,
+      //networkCheckTimeout: 1000000,
+      //gas: 5500000,
+      chainId: 137,
       skipDryRun: true
     },
     mumbai: {

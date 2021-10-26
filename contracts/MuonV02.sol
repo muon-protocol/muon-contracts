@@ -5,12 +5,6 @@ pragma solidity >=0.7.0 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./SchnorrSECP256K1.sol";
 
-struct SchnorrSign {
-    uint256 signature;
-    address owner;
-    address nonce;
-}
-
 contract MuonV02 is Ownable {
 
     event Transaction(bytes reqId, address[] groups);
@@ -20,6 +14,12 @@ contract MuonV02 is Ownable {
     struct PublicKey {
         uint256 x;
         uint8 parity;
+    }
+
+    struct SchnorrSign {
+        uint256 signature;
+        address owner;
+        address nonce;
     }
 
     mapping(address => PublicKey) public groupsPubKey;
