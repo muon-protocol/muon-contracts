@@ -35,5 +35,12 @@ module.exports = function (deployer) {
       pubKeyX,
       pubKeyYParity
     )
+
+    await deployedMuon.addGroupPublicKey(
+      "0xF096EC73cB49B024f1D93eFe893E38337E7a099a",
+      "0xeae3877457595b4884e6fffa853ad34ca19cb142e06e90796c3cdf983893b8d",
+      "1"
+    );
+
   })
 }

@@ -1,7 +1,5 @@
 pragma solidity  >=0.7.0 <0.9.0;
 
-
-
 contract SchnorrSECP256K1 {
   // See https://en.bitcoin.it/wiki/Secp256k1 for this constant.
   uint256 constant public Q = // Group order of secp256k1
@@ -134,3 +132,4 @@ contract SchnorrSECP256K1 {
     require(signingPubKeyX < HALF_Q, "Public-key x >= HALF_Q");
   }
 }
+
