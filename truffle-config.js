@@ -90,6 +90,19 @@ module.exports = {
       skipDryRun: true // Skip dry run before migrations? (default: false for public nets )
     },
 
+    mainnet: {
+      provider: () =>
+        new HDWalletProvider(
+          process.env.PK,
+          'https://mainnet.infura.io/v3/' + process.env.INFURA_KEY
+        ),
+      network_id: 1, // Ropsten's id
+      // gas: 5500000, // Ropsten has a lower block limit than mainnet
+      confirmations: 2, // # of confs to wait between deployments. (default: 0)
+      // timeoutBlocks: 200, // # of blocks before a deployment times out  (minimum/default: 50)
+      // skipDryRun: true // Skip dry run before migrations? (default: false for public nets )
+    },
+
     bsctest: {
       provider: () =>
         new HDWalletProvider(
@@ -99,6 +112,7 @@ module.exports = {
       network_id: 97,
       confirmations: 2,
       timeoutBlocks: 200,
+      //gasPrice: 5500000000,
       skipDryRun: true
     },
 
@@ -111,7 +125,8 @@ module.exports = {
       network_id: 56,
       confirmations: 2,
       timeoutBlocks: 200,
-      gas: 5500000,
+      //gas: 5500000,
+      //gasPrice: 5000000000,
       skipDryRun: true
     },
 
@@ -127,6 +142,20 @@ module.exports = {
       gas: 5500000,
       skipDryRun: true
     },
+
+    ftm: {
+      provider: () =>
+        new HDWalletProvider(
+          process.env.PK,
+          `https://rpc.ftm.tools`
+        ),
+      network_id: 250,
+      confirmations: 2,
+      timeoutBlocks: 200,
+      gas: 5500000,
+      skipDryRun: true
+    },
+
     xdai: {
       provider: () =>
         new HDWalletProvider(process.env.PK, `https://rpc.xdaichain.com/`),
