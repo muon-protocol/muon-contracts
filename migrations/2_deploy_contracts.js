@@ -1,4 +1,3 @@
-var schnorrLib = artifacts.require('./SchnorrSECP256K1.sol')
 var muon = artifacts.require('./MuonV02.sol')
 var { toBN } = web3.utils
 
@@ -18,29 +17,20 @@ function parseArgv() {
 }
 
 module.exports = function (deployer) {
+  
   deployer.then(async () => {
-    let params = parseArgv()
-
-    let libAddress = null
-    if (!!params['libAddress']) {
-      libAddress = params['muonAddress']
-    } else {
-      let deployedSchnorrLib = await await deployer.deploy(schnorrLib)
-      libAddress = deployedSchnorrLib.address
-    }
     let deployedMuon = await deployer.deploy(
       muon,
-      libAddress,
       pubKeyAddress,
       pubKeyX,
       pubKeyYParity
     )
 
-    await deployedMuon.addGroupPublicKey(
-      "0xF096EC73cB49B024f1D93eFe893E38337E7a099a",
-      "0xeae3877457595b4884e6fffa853ad34ca19cb142e06e90796c3cdf983893b8d",
-      "1"
-    );
+    // await deployedMuon.addGroupPublicKey(
+    //   "0xF096EC73cB49B024f1D93eFe893E38337E7a099a",
+    //   "0xeae3877457595b4884e6fffa853ad34ca19cb142e06e90796c3cdf983893b8d",
+    //   "1"
+    // );
 
   })
 }
