@@ -2,7 +2,7 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
-interface IMuonV02 {
+interface IMuonV03 {
     struct SchnorrSign {
         uint256 signature;
         address owner;

@@ -16,14 +16,14 @@ contract MuonV03Example {
     address validGateway = msg.sender; // by default
 
     constructor(address _muon){
-        muon = IMuonV02(_muon);
+        muon = IMuonV03(_muon);
     }
 
     function verifyTSS(
         uint256 testParam,
         bytes calldata reqId,
-        IMuonV02.SchnorrSign[] calldata signs
-    ) public returns (uint256){
+        IMuonV03.SchnorrSign[] calldata signs
+    ) public{
         bytes32 hash = keccak256(
             abi.encodePacked(
                 APP_ID,
@@ -42,9 +42,9 @@ contract MuonV03Example {
     function verifyTSSAndGateway(
         uint256 testParam,
         bytes calldata reqId,
-        IMuonV02.SchnorrSign[] calldata signs,
+        IMuonV03.SchnorrSign[] calldata signs,
         bytes calldata gatewaySignature
-    ) public returns (uint256){
+    ) public {
         bytes32 hash = keccak256(
             abi.encodePacked(
                 APP_ID,
@@ -58,7 +58,7 @@ contract MuonV03Example {
         hash = hash.toEthSignedMessageHash();
         address gatewaySignatureSigner = hash.recover(gatewaySignature);
 
-        require(gatewaySignature == validGateway, "Gateway is not valid");
+        require(gatewaySignatureSigner == validGateway, "Gateway is not valid");
 
         // will be supported later
         // require(MuonNodeManager(addr).isMasterNode(gatewaySignature), "Not signed by a master node");
