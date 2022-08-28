@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./IMuonV03.sol";
+import "./interfaces/IMuonV03.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 contract MuonV03Example {
@@ -36,7 +36,7 @@ contract MuonV03Example {
         require(verified, "TSS not verified");
     }
 
-    // To get gatewaySignature from MuonApp,
+    // To get the gatewaySignature,
     // gwSign=true should be passed to the
     // MuonApp.
     function verifyTSSAndGateway(
