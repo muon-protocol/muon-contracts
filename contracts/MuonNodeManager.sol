@@ -29,56 +29,77 @@ contract MuonNodeManager is AccessControl {
 
   event AddNode(Node node);
 
-    constructor(){
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(ADMIN_ROLE, msg.sender);
-    }
+  constructor(){
+      _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+      _setupRole(ADMIN_ROLE, msg.sender);
+  }
 
-    function addNode(
-      address _nodeAddress,
-      address _stakerAddress,
-      string calldata _peerId,
-      bool _active
-    ) public onlyRole(ADMIN_ROLE) {
-      require(
-        nodeAddressIds[_nodeAddress] == 0,
-        "nodeAddress already exists"
-      );
-      lastNodeId ++;
+  /**
+   * @dev Adds a new node.
+   *
+   * Requirements:
+   * - `_nodeAdrress` should be unique.
+   * - `_stakerAddress` should be unique
+   */
+  function addNode(
+    address _nodeAddress,
+    address _stakerAddress,
+    string calldata _peerId,
+    bool _active
+  ) public onlyRole(ADMIN_ROLE) {
+    require(
+      nodeAddressIds[_nodeAddress] == 0,
+      "Duplicate nodeAddress"
+    );
+    require(
+      nodeAddressIds[_nodeAddress] == 0,
+      "Duplicate stakerAddress"
+    );
+    lastNodeId ++;
+      nodes[lastNodeId] = Node({
+        id: lastNodeId,
+        nodeAddress: _nodeAddress,
+        stakerAddress: _stakerAddress,
+        peerId: _peerId,
+        active: _active,
+        time: block.timestamp
+      });
+      nodeAddressIds[_nodeAddress] = lastNodeId;
+      stakerAddressIds[_stakerAddress] = lastNodeId;
+              emit AddNode(nodes[lastNodeId]);
+  }
 
-        nodes[lastNodeId] = Node({
-          id: lastNodeId,
-          nodeAddress: _nodeAddress,
-          stakerAddress: _stakerAddress,
-          peerId: _peerId,
-          active: _active,
-          time: block.timestamp
-        });
-        nodeAddressIds[_nodeAddress] = lastNodeId;
-        stakerAddressIds[_stakerAddress] = lastNodeId;
-        
-        emit AddNode(nodes[lastNodeId]);
-    }
+  /**
+   * @dev Returns list of all nodes.
+   */
+  function getAllNodes() public view returns(
+      Node[] memory allNodes
+  ){
+    allNodes = new Node[](lastNodeId);
+      for(uint256 i = 1; i < lastNodeId; i++){
+        allNodes[i-1] = nodes[i];
+      }
+  }
 
-    function getAllNodes() public view returns(
-        Node[] memory allNodes
-    ){
-      allNodes = new Node[](lastNodeId);
+  /**
+   * @dev Returns `Node` for a valid
+   * nodeAddress and an empty Node(node.id==0)
+   * for an invalid nodeAddress.
+   */
+  function nodeAddressInfo(address _addr) public view returns(
+    Node memory node
+  ){
+    node = nodes[nodeAddressIds[_addr]];
+  }
 
-        for(uint256 i = 1; i < lastNodeId; i++){
-          allNodes[i-1] = nodes[i];
-        }
-    }
-
-    function nodeAddressInfo(address _addr) public view returns(
-      Node memory node
-    ){
-      node = nodes[nodeAddressIds[_addr]];
-    }
-
-    function stakerAddressInfo(address _addr) public view returns(
-      Node memory node
-    ){
-      node = nodes[stakerAddressIds[_addr]];
-    }
+  /**
+   * @dev Returns `Node` for a valid
+   * stakerAddress and an empty Node(node.id==0)
+   * for an invalid stakerAddress.
+   */
+  function stakerAddressInfo(address _addr) public view returns(
+    Node memory node
+  ){
+    node = nodes[stakerAddressIds[_addr]];
+  }
 }
