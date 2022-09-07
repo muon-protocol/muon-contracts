@@ -19,12 +19,12 @@ function parseArgv() {
 module.exports = function (deployer) {
   
   deployer.then(async () => {
-    let deployedMuon = await deployer.deploy(
-      muon,
-      pubKeyAddress,
-      pubKeyX,
-      pubKeyYParity
-    )
+    // let deployedMuon = await deployer.deploy(
+    //   muon,
+    //   pubKeyAddress,
+    //   pubKeyX,
+    //   pubKeyYParity
+    // )
 
     // await deployedMuon.addGroupPublicKey(
     //   "0xF096EC73cB49B024f1D93eFe893E38337E7a099a",

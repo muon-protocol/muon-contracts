@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import "./MuonV04Client.sol";
 
-contract MuonV03Example is MuonV04Client {
+contract MuonV04Example is MuonV04Client {
     using ECDSA for bytes32;
 
     // The apps can run their own gateway and 
@@ -21,19 +21,21 @@ contract MuonV03Example is MuonV04Client {
     }
 
     function verifyTSS(
-        uint256 testParam,
+        string calldata data,
         bytes calldata reqId,
         IMuonV04.SchnorrSign calldata sign
-    ) public{
+    ) public returns(bool){
         bytes32 hash = keccak256(
             abi.encodePacked(
                 muonAppId,
                 reqId,
-                testParam
+                data
             )
         );
         bool verified = muon.verify(reqId, uint256(hash), sign, muonPublicKey);
         require(verified, "TSS not verified");
+
+        return verified;
     }
 
     // To get the gatewaySignature,
