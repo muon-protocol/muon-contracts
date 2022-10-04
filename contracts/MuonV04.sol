@@ -9,24 +9,6 @@ import "./interfaces/IMuonV04.sol";
 contract MuonV04 is IMuonV04,
     Ownable, SchnorrSECP256K1Verifier {
 
-    // event Transaction(bytes reqId, address[] groups);
-
-    // struct PublicKey {
-    //     uint256 x;
-    //     uint8 parity;
-    // }
-
-    // struct SchnorrSign {
-    //     uint256 signature;
-    //     address owner;
-    //     address nonce;
-    // }
-
-    // mapping(address => PublicKey) public groupsPubKey;
-
-    constructor(){
-    }
-
     function verify(
         bytes calldata reqId,
         uint256 hash, 
