@@ -4,6 +4,9 @@ pragma solidity >=0.7.0 <0.9.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
+// TODO: should we allow editing 
+// nodeAddress, stakerAddress, peerId?
+
 contract MuonNodeManager is AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
@@ -33,8 +36,8 @@ contract MuonNodeManager is AccessControl {
     event DeactiveNode(Node node);
 
     constructor(){
-            _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-            _setupRole(ADMIN_ROLE, msg.sender);
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(ADMIN_ROLE, msg.sender);
     }
 
     /**
@@ -50,6 +53,51 @@ contract MuonNodeManager is AccessControl {
         string calldata _peerId,
         bool _active
     ) public onlyRole(ADMIN_ROLE) {
+        _addNode(_nodeAddress, _stakerAddress, _peerId, _active);
+    }
+
+    /**
+     * @dev Removes a node
+     */
+    function removeNode(
+        uint256 nodeId
+    ) public onlyRole(ADMIN_ROLE) {
+        require(
+            nodes[nodeId].id == nodeId && nodes[nodeId].active, 
+            "Not found"
+        );
+        nodes[nodeId].endTime = block.timestamp;
+        nodes[nodeId].active = false;
+
+
+        emit RemoveNode(nodes[nodeId]);
+    }
+
+    /**
+     * @dev Allows the node's owner to deactive its node
+     */
+    function deactiveNode(
+        uint256 nodeId
+    ) public{
+        require(
+            msg.sender == nodes[nodeId].stakerAddress ||
+            msg.sender == nodes[nodeId].nodeAddress,
+            "Access Denied"
+        );
+        require(nodes[nodeId].active, "Already deactive");
+
+        nodes[nodeId].endTime = block.timestamp;
+        nodes[nodeId].active = false;
+
+        emit DeactiveNode(nodes[nodeId]);
+    }
+
+    function _addNode(
+        address _nodeAddress,
+        address _stakerAddress,
+        string calldata _peerId,
+        bool _active
+    ) private{
         require(
             nodeAddressIds[_nodeAddress] == 0,
             "Duplicate nodeAddress"
@@ -72,35 +120,6 @@ contract MuonNodeManager is AccessControl {
         nodeAddressIds[_nodeAddress] = lastNodeId;
         stakerAddressIds[_stakerAddress] = lastNodeId;
         emit AddNode(nodes[lastNodeId]);
-    }
-
-    /**
-     * @dev Removes a node
-     */
-    function removeNode(
-        uint256 nodeId
-    ) public onlyRole(ADMIN_ROLE) {
-        require(nodes[nodeId].id == nodeId, "Not found");
-        nodes[nodeId].endTime = block.timestamp;
-        nodes[nodeId].active = false;
-
-        emit RemoveNode(nodes[lastNodeId]);
-    }
-
-    /**
-     * @dev Allows the node's owner to deactive its node
-     */
-    function deactiveNode(
-        uint256 nodeId
-    ) public{
-        require(
-            msg.sender == nodes[nodeId].stakerAddress ||
-            msg.sender == nodes[nodeId].nodeAddress
-        );
-        nodes[nodeId].endTime = block.timestamp;
-        nodes[nodeId].active = false;
-
-        emit DeactiveNode(nodes[nodeId]);
     }
 
     /**
