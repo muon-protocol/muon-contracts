@@ -11,13 +11,14 @@ contract MuonNodeManager is AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     struct Node {
-        uint256 id; // incremental ID
+        uint64 id; // incremental ID
         address nodeAddress; // will be used on the node
         address stakerAddress;
         string peerId; // p2p peer ID
         bool active;
         uint256 startTime;
         uint256 endTime;
+        uint256 lastEditTime;
     }
 
     // nodeId => Node
@@ -29,11 +30,13 @@ contract MuonNodeManager is AccessControl {
     // stakerAddress => nodeId
     mapping(address => uint256) public stakerAddressIds;  
 
-    uint256 public lastNodeId = 0;
+    uint64 public lastNodeId = 0;
 
-    event AddNode(Node node);
-    event RemoveNode(Node node);
-    event DeactiveNode(Node node);
+    event AddNode(uint64 indexed nodeId, Node node);
+    event RemoveNode(uint64 indexed nodeId);
+    event DeactiveNode(uint64 indexed nodeId);
+    event EditNodeAddress(uint64 indexed nodeId, address oldAddr, address newAddr);
+    event EditPeerId(uint64 indexed nodeId, string oldId, string newId);
 
     constructor(){
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -60,7 +63,7 @@ contract MuonNodeManager is AccessControl {
      * @dev Removes a node
      */
     function removeNode(
-        uint256 nodeId
+        uint64 nodeId
     ) public onlyRole(ADMIN_ROLE) {
         require(
             nodes[nodeId].id == nodeId && nodes[nodeId].active, 
@@ -68,28 +71,74 @@ contract MuonNodeManager is AccessControl {
         );
         nodes[nodeId].endTime = block.timestamp;
         nodes[nodeId].active = false;
+        nodes[nodeId].lastEditTime = block.timestamp;
 
 
-        emit RemoveNode(nodes[nodeId]);
+        emit RemoveNode(nodeId);
     }
 
     /**
      * @dev Allows the node's owner to deactive its node
      */
     function deactiveNode(
-        uint256 nodeId
+        uint64 nodeId
     ) public{
         require(
             msg.sender == nodes[nodeId].stakerAddress ||
             msg.sender == nodes[nodeId].nodeAddress,
             "Access Denied"
         );
-        require(nodes[nodeId].active, "Already deactive");
+        require(nodes[nodeId].active, "Already deactived");
 
         nodes[nodeId].endTime = block.timestamp;
         nodes[nodeId].active = false;
+        nodes[nodeId].lastEditTime = block.timestamp;
 
-        emit DeactiveNode(nodes[nodeId]);
+        emit DeactiveNode(nodeId);
+    }
+
+    /**
+     * @dev Edits the nodeAddress
+     */
+    function editNodeAddress(
+        uint64 nodeId,
+        address nodeAddress
+    ) public onlyRole(ADMIN_ROLE){
+        require(
+            nodes[nodeId].id == nodeId && nodes[nodeId].active, 
+            "Not found"
+        );
+        require(
+            nodeAddressIds[nodeAddress] == 0,
+            "Duplicate nodeAddress"
+        );
+        
+        nodeAddressIds[nodeAddress] = nodeId;
+        nodeAddressIds[nodes[nodeId].nodeAddress] = 0;
+
+        emit EditNodeAddress(nodeId, nodes[nodeId].nodeAddress, nodeAddress);
+
+        nodes[nodeId].nodeAddress = nodeAddress;
+
+        nodes[nodeId].lastEditTime = block.timestamp;
+    }
+
+    /**
+     * @dev Edits the nodeAddress
+     */
+    function editPeerId(
+        uint64 nodeId,
+        string memory peerId
+    ) public onlyRole(ADMIN_ROLE){
+        require(
+            nodes[nodeId].id == nodeId && nodes[nodeId].active, 
+            "Not found"
+        );
+        
+        emit EditPeerId(nodeId, nodes[nodeId].peerId, peerId);
+
+        nodes[nodeId].peerId = peerId;
+        nodes[nodeId].lastEditTime = block.timestamp;
     }
 
     function _addNode(
@@ -103,7 +152,7 @@ contract MuonNodeManager is AccessControl {
             "Duplicate nodeAddress"
         );
         require(
-            nodeAddressIds[_nodeAddress] == 0,
+            nodeAddressIds[_stakerAddress] == 0,
             "Duplicate stakerAddress"
         );
         lastNodeId ++;
@@ -114,12 +163,13 @@ contract MuonNodeManager is AccessControl {
             peerId: _peerId,
             active: _active,
             startTime: block.timestamp,
+            lastEditTime: block.timestamp,
             endTime: 0
         });
         
         nodeAddressIds[_nodeAddress] = lastNodeId;
         stakerAddressIds[_stakerAddress] = lastNodeId;
-        emit AddNode(nodes[lastNodeId]);
+        emit AddNode(lastNodeId, nodes[lastNodeId]);
     }
 
     /**
