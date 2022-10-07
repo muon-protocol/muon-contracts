@@ -12,15 +12,15 @@ web3.eth.defaultAccount = acc.address;
 
 var contract = new web3.eth.Contract(ABI, contractAddress);
 
-if(process.argv.length != 4){
-    console.log("Usage: add_node.js <nodeAddress> <stakerAddress>");
+if(process.argv.length != 5){
+    console.log("Usage: add_node.js <nodeAddress> <stakerAddress> <peerId>");
     process.exit(1)
 }
 contract.methods
     .addNode(
         process.argv[2], // nodeAddress
         process.argv[3], // stakerAddress
-        "Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP",
+        process.argv[4],
         true // active
     )
     .send({

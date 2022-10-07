@@ -13,18 +13,17 @@ contract MuonV04Example is MuonV04Client {
     address validGateway = msg.sender; // by default
 
     constructor(
-        address muonAddress, 
         uint256 _muonAppId,
-        IMuonV04.PublicKey memory _muonPublicKey
-    ) MuonV04Client(muonAddress, _muonAppId, _muonPublicKey){
+        PublicKey memory _muonPublicKey
+    ) MuonV04Client(_muonAppId, _muonPublicKey){
 
     }
 
     function verifyTSS(
         string calldata data,
         bytes calldata reqId,
-        IMuonV04.SchnorrSign calldata sign
-    ) public returns(bool){
+        SchnorrSign calldata sign
+    ) public{
         bytes32 hash = keccak256(
             abi.encodePacked(
                 muonAppId,
@@ -32,10 +31,8 @@ contract MuonV04Example is MuonV04Client {
                 data
             )
         );
-        bool verified = muon.verify(reqId, uint256(hash), sign, muonPublicKey);
+        bool verified = muonVerify(reqId, uint256(hash), sign, muonPublicKey);
         require(verified, "TSS not verified");
-
-        return verified;
     }
 
     // To get the gatewaySignature,
@@ -44,7 +41,7 @@ contract MuonV04Example is MuonV04Client {
     function verifyTSSAndGateway(
         uint256 testParam,
         bytes calldata reqId,
-        IMuonV04.SchnorrSign calldata sign,
+        SchnorrSign calldata sign,
         bytes calldata gatewaySignature
     ) public {
         bytes32 hash = keccak256(
@@ -54,7 +51,7 @@ contract MuonV04Example is MuonV04Client {
                 testParam
             )
         );
-        bool verified = muon.verify(reqId, uint256(hash), sign, muonPublicKey);
+        bool verified = muonVerify(reqId, uint256(hash), sign, muonPublicKey);
         require(verified, "TSS not verified");
 
         hash = hash.toEthSignedMessageHash();
