@@ -32,6 +32,10 @@ contract MuonNodeManager is AccessControl {
 
     uint64 public lastNodeId = 0;
 
+    // muon nodes check lastUpdateTime to sync their
+    // memory
+    uint256 public lastUpdateTime = block.timestamp;
+
     event AddNode(uint64 indexed nodeId, Node node);
     event RemoveNode(uint64 indexed nodeId);
     event DeactiveNode(uint64 indexed nodeId);
@@ -73,7 +77,7 @@ contract MuonNodeManager is AccessControl {
         nodes[nodeId].active = false;
         nodes[nodeId].lastEditTime = block.timestamp;
 
-
+        lastUpdateTime = block.timestamp;
         emit RemoveNode(nodeId);
     }
 
@@ -94,6 +98,7 @@ contract MuonNodeManager is AccessControl {
         nodes[nodeId].active = false;
         nodes[nodeId].lastEditTime = block.timestamp;
 
+        lastUpdateTime = block.timestamp;
         emit DeactiveNode(nodeId);
     }
 
@@ -120,6 +125,7 @@ contract MuonNodeManager is AccessControl {
 
         nodes[nodeId].nodeAddress = nodeAddress;
 
+        lastUpdateTime = block.timestamp;
         nodes[nodeId].lastEditTime = block.timestamp;
     }
 
@@ -138,6 +144,8 @@ contract MuonNodeManager is AccessControl {
         emit EditPeerId(nodeId, nodes[nodeId].peerId, peerId);
 
         nodes[nodeId].peerId = peerId;
+
+        lastUpdateTime = block.timestamp;
         nodes[nodeId].lastEditTime = block.timestamp;
     }
 
@@ -169,6 +177,8 @@ contract MuonNodeManager is AccessControl {
         
         nodeAddressIds[_nodeAddress] = lastNodeId;
         stakerAddressIds[_stakerAddress] = lastNodeId;
+        
+        lastUpdateTime = block.timestamp;
         emit AddNode(lastNodeId, nodes[lastNodeId]);
     }
 
@@ -179,7 +189,7 @@ contract MuonNodeManager is AccessControl {
             Node[] memory allNodes
     ){
         allNodes = new Node[](lastNodeId);
-        for(uint256 i = 1; i < lastNodeId; i++){
+        for(uint256 i = 1; i <= lastNodeId; i++){
             allNodes[i-1] = nodes[i];
         }
     }
