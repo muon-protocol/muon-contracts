@@ -8,6 +8,10 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 // nodeAddress, stakerAddress, peerId?
 
 contract MuonNodeManager is AccessControl {
+    // ADMIN_ROLE could be granted to other smart contracts to let
+    // them manage the nodes permissionlessly
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    
     bytes32 public constant DAO_ROLE = keccak256("DAO_ROLE");
 
     struct Node {
@@ -48,7 +52,7 @@ contract MuonNodeManager is AccessControl {
 
     constructor(){
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(DAO_ROLE, msg.sender);
+        _setupRole(ADMIN_ROLE, msg.sender);
     }
 
     modifier updateState(){
@@ -68,7 +72,7 @@ contract MuonNodeManager is AccessControl {
         address _stakerAddress,
         string calldata _peerId,
         bool _active
-    ) public onlyRole(DAO_ROLE) {
+    ) public onlyRole(ADMIN_ROLE) {
         _addNode(_nodeAddress, _stakerAddress, 
             _peerId, _active);
     }
@@ -78,7 +82,7 @@ contract MuonNodeManager is AccessControl {
      */
     function removeNode(
         uint64 nodeId
-    ) public onlyRole(DAO_ROLE) updateState{
+    ) public onlyRole(ADMIN_ROLE) updateState{
         require(
             nodes[nodeId].id == nodeId && nodes[nodeId].active, 
             "Not found"
@@ -115,7 +119,7 @@ contract MuonNodeManager is AccessControl {
     function editNodeAddress(
         uint64 nodeId,
         address nodeAddress
-    ) public onlyRole(DAO_ROLE) updateState{
+    ) public onlyRole(ADMIN_ROLE) updateState{
         require(
             nodes[nodeId].id == nodeId && nodes[nodeId].active, 
             "Not found"
@@ -141,7 +145,7 @@ contract MuonNodeManager is AccessControl {
     function editPeerId(
         uint64 nodeId,
         string memory peerId
-    ) public onlyRole(DAO_ROLE) updateState{
+    ) public onlyRole(ADMIN_ROLE) updateState{
         require(
             nodes[nodeId].id == nodeId && nodes[nodeId].active, 
             "Not found"
@@ -183,6 +187,21 @@ contract MuonNodeManager is AccessControl {
         stakerAddressIds[_stakerAddress] = lastNodeId;
         
         emit AddNode(lastNodeId, nodes[lastNodeId]);
+    }
+
+    /**
+     * @dev Allows the DAO to set isDeployer
+     * for the nodes
+     */
+    function setIsDeployer(
+        uint64 nodeId,
+        bool _isDeployer
+    ) public onlyRole(DAO_ROLE) updateState{
+        require(
+            nodes[nodeId].isDeployer != _isDeployer,
+            "Alreay updated"
+        );
+        nodes[nodeId].isDeployer = _isDeployer;
     }
 
     /**
