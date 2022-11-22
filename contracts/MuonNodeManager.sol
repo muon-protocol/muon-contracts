@@ -47,6 +47,11 @@ contract MuonNodeManager is AccessControl {
         _setupRole(ADMIN_ROLE, msg.sender);
     }
 
+    modifier updateState(){
+        lastUpdateTime = block.timestamp;
+        _;
+    }
+
     /**
      * @dev Adds a new node.
      *
@@ -68,7 +73,7 @@ contract MuonNodeManager is AccessControl {
      */
     function removeNode(
         uint64 nodeId
-    ) public onlyRole(ADMIN_ROLE) {
+    ) public onlyRole(ADMIN_ROLE) updateState{
         require(
             nodes[nodeId].id == nodeId && nodes[nodeId].active, 
             "Not found"
@@ -76,8 +81,6 @@ contract MuonNodeManager is AccessControl {
         nodes[nodeId].endTime = block.timestamp;
         nodes[nodeId].active = false;
         nodes[nodeId].lastEditTime = block.timestamp;
-
-        lastUpdateTime = block.timestamp;
         emit RemoveNode(nodeId);
     }
 
@@ -86,7 +89,7 @@ contract MuonNodeManager is AccessControl {
      */
     function deactiveNode(
         uint64 nodeId
-    ) public{
+    ) public updateState{
         require(
             msg.sender == nodes[nodeId].stakerAddress ||
             msg.sender == nodes[nodeId].nodeAddress,
@@ -98,7 +101,6 @@ contract MuonNodeManager is AccessControl {
         nodes[nodeId].active = false;
         nodes[nodeId].lastEditTime = block.timestamp;
 
-        lastUpdateTime = block.timestamp;
         emit DeactiveNode(nodeId);
     }
 
@@ -108,7 +110,7 @@ contract MuonNodeManager is AccessControl {
     function editNodeAddress(
         uint64 nodeId,
         address nodeAddress
-    ) public onlyRole(ADMIN_ROLE){
+    ) public onlyRole(ADMIN_ROLE) updateState{
         require(
             nodes[nodeId].id == nodeId && nodes[nodeId].active, 
             "Not found"
@@ -125,7 +127,6 @@ contract MuonNodeManager is AccessControl {
 
         nodes[nodeId].nodeAddress = nodeAddress;
 
-        lastUpdateTime = block.timestamp;
         nodes[nodeId].lastEditTime = block.timestamp;
     }
 
@@ -135,7 +136,7 @@ contract MuonNodeManager is AccessControl {
     function editPeerId(
         uint64 nodeId,
         string memory peerId
-    ) public onlyRole(ADMIN_ROLE){
+    ) public onlyRole(ADMIN_ROLE) updateState{
         require(
             nodes[nodeId].id == nodeId && nodes[nodeId].active, 
             "Not found"
@@ -146,7 +147,6 @@ contract MuonNodeManager is AccessControl {
         nodes[nodeId].peerId = peerId;
 
         lastUpdateTime = block.timestamp;
-        nodes[nodeId].lastEditTime = block.timestamp;
     }
 
     function _addNode(
@@ -154,7 +154,7 @@ contract MuonNodeManager is AccessControl {
         address _stakerAddress,
         string calldata _peerId,
         bool _active
-    ) private{
+    ) private updateState{
         require(
             nodeAddressIds[_nodeAddress] == 0,
             "Duplicate nodeAddress"
@@ -178,7 +178,6 @@ contract MuonNodeManager is AccessControl {
         nodeAddressIds[_nodeAddress] = lastNodeId;
         stakerAddressIds[_stakerAddress] = lastNodeId;
         
-        lastUpdateTime = block.timestamp;
         emit AddNode(lastNodeId, nodes[lastNodeId]);
     }
 
@@ -186,12 +185,23 @@ contract MuonNodeManager is AccessControl {
      * @dev Returns list of all nodes.
      */
     function getAllNodes() public view returns(
-            Node[] memory allNodes
+        Node[] memory allNodes
     ){
         allNodes = new Node[](lastNodeId);
         for(uint256 i = 1; i <= lastNodeId; i++){
             allNodes[i-1] = nodes[i];
         }
+    }
+
+    /**
+     * @dev Returns all info
+     */
+    function info() public view returns(
+        Node[] memory _nodes,
+        uint256 _lastUpdateTime
+    ){
+        _lastUpdateTime = lastUpdateTime;
+        _nodes = getAllNodes();
     }
 
     /**
