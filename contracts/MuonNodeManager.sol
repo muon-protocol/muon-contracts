@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 // nodeAddress, stakerAddress, peerId?
 
 contract MuonNodeManager is AccessControl {
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    bytes32 public constant DAO_ROLE = keccak256("DAO_ROLE");
 
     struct Node {
         uint64 id; // incremental ID
@@ -19,6 +19,10 @@ contract MuonNodeManager is AccessControl {
         uint256 startTime;
         uint256 endTime;
         uint256 lastEditTime;
+
+        // Deployer nodes on the network run
+        // the deployment app and deploy the MuonApps
+        bool isDeployer;
     }
 
     // nodeId => Node
@@ -44,7 +48,7 @@ contract MuonNodeManager is AccessControl {
 
     constructor(){
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(ADMIN_ROLE, msg.sender);
+        _setupRole(DAO_ROLE, msg.sender);
     }
 
     modifier updateState(){
@@ -64,8 +68,9 @@ contract MuonNodeManager is AccessControl {
         address _stakerAddress,
         string calldata _peerId,
         bool _active
-    ) public onlyRole(ADMIN_ROLE) {
-        _addNode(_nodeAddress, _stakerAddress, _peerId, _active);
+    ) public onlyRole(DAO_ROLE) {
+        _addNode(_nodeAddress, _stakerAddress, 
+            _peerId, _active);
     }
 
     /**
@@ -73,7 +78,7 @@ contract MuonNodeManager is AccessControl {
      */
     function removeNode(
         uint64 nodeId
-    ) public onlyRole(ADMIN_ROLE) updateState{
+    ) public onlyRole(DAO_ROLE) updateState{
         require(
             nodes[nodeId].id == nodeId && nodes[nodeId].active, 
             "Not found"
@@ -110,7 +115,7 @@ contract MuonNodeManager is AccessControl {
     function editNodeAddress(
         uint64 nodeId,
         address nodeAddress
-    ) public onlyRole(ADMIN_ROLE) updateState{
+    ) public onlyRole(DAO_ROLE) updateState{
         require(
             nodes[nodeId].id == nodeId && nodes[nodeId].active, 
             "Not found"
@@ -136,7 +141,7 @@ contract MuonNodeManager is AccessControl {
     function editPeerId(
         uint64 nodeId,
         string memory peerId
-    ) public onlyRole(ADMIN_ROLE) updateState{
+    ) public onlyRole(DAO_ROLE) updateState{
         require(
             nodes[nodeId].id == nodeId && nodes[nodeId].active, 
             "Not found"
@@ -145,8 +150,6 @@ contract MuonNodeManager is AccessControl {
         emit EditPeerId(nodeId, nodes[nodeId].peerId, peerId);
 
         nodes[nodeId].peerId = peerId;
-
-        lastUpdateTime = block.timestamp;
     }
 
     function _addNode(
@@ -172,7 +175,8 @@ contract MuonNodeManager is AccessControl {
             active: _active,
             startTime: block.timestamp,
             lastEditTime: block.timestamp,
-            endTime: 0
+            endTime: 0,
+            isDeployer: false
         });
         
         nodeAddressIds[_nodeAddress] = lastNodeId;
