@@ -44,11 +44,17 @@ contract MuonNodeManager is AccessControl {
     // memory
     uint256 public lastUpdateTime = block.timestamp;
 
+    // configs
+    // commit_id => git commit id
+    mapping(string => string) public configs;
+
     event AddNode(uint64 indexed nodeId, Node node);
     event RemoveNode(uint64 indexed nodeId);
     event DeactiveNode(uint64 indexed nodeId);
     event EditNodeAddress(uint64 indexed nodeId, address oldAddr, address newAddr);
     event EditPeerId(uint64 indexed nodeId, string oldId, string newId);
+
+    event Config(string indexed key, string value);
 
     constructor(){
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -202,6 +208,16 @@ contract MuonNodeManager is AccessControl {
             "Alreay updated"
         );
         nodes[nodeId].isDeployer = _isDeployer;
+    }
+
+    /**
+     * @dev Sets a config
+     */
+    function setConfig(
+        string key,
+        string val
+    ) public onlyRole(DAO_ROLE){
+        configs[key] = val;
     }
 
     /**
