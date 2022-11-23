@@ -15,7 +15,7 @@ function parseArgv() {
 
 /**
  * Deploy MuonNodeManager cmd:
- * ./node_modules/.bin/truffle deploy --network=development --node-manager --nodes=../nodes.json
+ * ./node_modules/.bin/truffle deploy --network=development --node-manager --nodes=../nodes.json --deployer
  */
 module.exports = async function (deployer) {
     let args = parseArgv();
@@ -26,13 +26,22 @@ module.exports = async function (deployer) {
             let nodes = require(args["nodes"]);
             console.log(`Adding ${nodes.length} nodes`);
             for (i = 0; i < nodes.length; i++) {
-                console.log(`Node ${nodes[i].nodeAddress}`);
+                console.log(`Node ${nodes[i][1]}`);
                 await nodeManagerDeployed.addNode(
-                    nodes[i].nodeAddress,
-                    nodes[i].stakerAddress || nodes[i].nodeAddress,
-                    nodes[i].peerId,
+                    nodes[i][1],
+                    nodes[i][2],
+                    nodes[i][3],
                     true
                 );
+            }
+            if("--deployer"){
+                for (i = 0; i < nodes.length; i++) {
+                    console.log(`Set isDeployer for ${nodes[i][1]}`);
+                    await nodeManagerDeployed.setIsDeployer(
+                        i+1,
+                        true
+                    );
+                }   
             }
         }
     }

@@ -59,6 +59,7 @@ contract MuonNodeManager is AccessControl {
     constructor(){
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(ADMIN_ROLE, msg.sender);
+        _setupRole(DAO_ROLE, msg.sender);
     }
 
     modifier updateState(){
@@ -214,8 +215,8 @@ contract MuonNodeManager is AccessControl {
      * @dev Sets a config
      */
     function setConfig(
-        string key,
-        string val
+        string memory key,
+        string memory val
     ) public onlyRole(DAO_ROLE){
         configs[key] = val;
     }
