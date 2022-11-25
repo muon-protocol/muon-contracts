@@ -195,13 +195,13 @@ module.exports = {
       provider: () =>
         new HDWalletProvider(
           process.env.PK,
-          //'https://rpc-mumbai.maticvigil.com/'
-          "https://rpc.ankr.com/polygon_mumbai/"
+          'https://rpc-mumbai.maticvigil.com/'
+          //"https://rpc.ankr.com/polygon_mumbai/"
         ),
       network_id: 80001,
       confirmations: 2,
       timeoutBlocks: 200,
-      gas: 5500000,
+      gas: 55000000000,
       skipDryRun: true
     }
     // Useful for private networks
