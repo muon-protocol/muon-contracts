@@ -61,10 +61,16 @@ contract MuonNodeStaking is AccessControl {
     // min stake amount for the nodes
     uint256 public nodeMinStakeAmount = 1000 ether;
 
-    constructor(){
+    constructor(
+        address muonTokenAddress,
+        address nodeManagerAddress
+    ){
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(ADMIN_ROLE, msg.sender);
         _setupRole(DAO_ROLE, msg.sender);
+
+        muonToken = IERC20(muonTokenAddress);
+        nodeManager = IMuonNodeManager(nodeManagerAddress);
     }
 
     function stake(uint256 amount) public{
