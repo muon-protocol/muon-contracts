@@ -201,7 +201,7 @@ module.exports = {
       network_id: 80001,
       confirmations: 2,
       timeoutBlocks: 200,
-      gas: 55000000000,
+      gas: 5500000,
       skipDryRun: true
     }
     // Useful for private networks

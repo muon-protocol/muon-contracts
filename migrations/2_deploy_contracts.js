@@ -1,5 +1,7 @@
-const muon = artifacts.require("./MuonV04.sol");
 const nodeManager = artifacts.require("MuonNodeManager.sol");
+const nodeStaking = artifacts.require("MuonNodeStaking.sol");
+const token = artifacts.require("MuonTestToken.sol");
+
 const { toBN } = web3.utils;
 
 function parseArgv() {
@@ -14,8 +16,14 @@ function parseArgv() {
 }
 
 /**
- * Deploy MuonNodeManager cmd:
+ * Deploy MuonNodeManager:
  * ./node_modules/.bin/truffle deploy --network=development --node-manager --nodes=../nodes.json --deployer
+ *
+ * Deploy Token:
+ * ./node_modules/.bin/truffle deploy --network=development --token
+ *
+ * Deploy MounNodeStaking:
+ * ./node_modules/.bin/truffle deploy --node-staking --token-addr=0x-token --node-manager-addr=0x-node-manager
  */
 module.exports = async function (deployer) {
     let args = parseArgv();
@@ -34,15 +42,24 @@ module.exports = async function (deployer) {
                     true
                 );
             }
-            if("--deployer"){
+            if ("--deployer") {
                 for (i = 0; i < nodes.length; i++) {
                     console.log(`Set isDeployer for ${nodes[i][1]}`);
-                    await nodeManagerDeployed.setIsDeployer(
-                        i+1,
-                        true
-                    );
-                }   
+                    await nodeManagerDeployed.setIsDeployer(i + 1, true);
+                }
             }
         }
+    }
+
+    if (args["token"]) {
+        await deployer.deploy(token);
+    }
+
+    if (args["node-staking"]) {
+        await deployer.deploy(
+            nodeStaking,
+            args["token-addr"],
+            args["node-manager-addr"]
+        );
     }
 };
