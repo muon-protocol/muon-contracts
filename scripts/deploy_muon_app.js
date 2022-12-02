@@ -1,11 +1,13 @@
 require("dotenv").config();
 const Muon = require("muon");
+
+// Testnet: https://testnet.muon.net
 const muon = new Muon(process.env.MUON_NODE_GATEWAY);
 const deploymentApp = "deployment";
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// test app to deploy
+// appId of the MuonApp
 const tssAppId = process.env.MUON_TSS_APP_ID;
 
 async function main() {
@@ -15,8 +17,7 @@ async function main() {
             appId: tssAppId,
         })
         .call();
-    console.log(randomSeedResponse);
-    // return;
+    console.log("RandomSeed response: ", randomSeedResponse);
     await sleep(2000);
     let deployResponse = await muon
         .app(deploymentApp)
@@ -28,8 +29,8 @@ async function main() {
         })
         .call();
 
-    console.log(deployResponse);
-    await sleep(10000);
+    console.log("Deploy response: ", deployResponse);
+    await sleep(5000);
 
     let keyGenResponse = await muon
         .app(deploymentApp)
@@ -38,7 +39,7 @@ async function main() {
             seed: randomSeedResponse.sigs[0].signature,
         })
         .call();
-    console.log(keyGenResponse);
+    console.log("Keygen Response: ", keyGenResponse);
 }
 
 main().then(() => console.log("Success"));
