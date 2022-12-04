@@ -3,31 +3,18 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./IMuonNodeManager.sol";
 
 // TODO: should we allow editing 
 // nodeAddress, stakerAddress, peerId?
 
-contract MuonNodeManager is AccessControl {
+contract MuonNodeManager is AccessControl, IMuonNodeManager {
     // ADMIN_ROLE could be granted to other smart contracts to let
     // them manage the nodes permissionlessly
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     
     bytes32 public constant DAO_ROLE = keccak256("DAO_ROLE");
 
-    struct Node {
-        uint64 id; // incremental ID
-        address nodeAddress; // will be used on the node
-        address stakerAddress;
-        string peerId; // p2p peer ID
-        bool active;
-        uint256 startTime;
-        uint256 endTime;
-        uint256 lastEditTime;
-
-        // Deployer nodes on the network run
-        // the deployment app and deploy the MuonApps
-        bool isDeployer;
-    }
 
     // nodeId => Node
     mapping(uint256 => Node) public nodes;
@@ -79,7 +66,7 @@ contract MuonNodeManager is AccessControl {
         address _stakerAddress,
         string calldata _peerId,
         bool _active
-    ) public onlyRole(ADMIN_ROLE) {
+    ) public override onlyRole(ADMIN_ROLE) {
         _addNode(_nodeAddress, _stakerAddress, 
             _peerId, _active);
     }
@@ -260,7 +247,7 @@ contract MuonNodeManager is AccessControl {
      * stakerAddress and an empty Node(node.id==0)
      * for an invalid stakerAddress.
      */
-    function stakerAddressInfo(address _addr) public view returns(
+    function stakerAddressInfo(address _addr) public override view returns(
         Node memory node
     ){
         node = nodes[stakerAddressIds[_addr]];

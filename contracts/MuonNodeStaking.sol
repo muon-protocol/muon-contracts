@@ -4,34 +4,7 @@ pragma solidity >=0.7.0 <0.9.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-interface IMuonNodeManager {
-    struct Node {
-        uint64 id; // incremental ID
-        address nodeAddress; // will be used on the node
-        address stakerAddress;
-        string peerId; // p2p peer ID
-        bool active;
-        uint256 startTime;
-        uint256 endTime;
-        uint256 lastEditTime;
-
-        // Deployer nodes on the network run
-        // the deployment app and deploy the MuonApps
-        bool isDeployer;
-    }
-
-    function addNode(
-        address _nodeAddress,
-        address _stakerAddress,
-        string calldata _peerId,
-        bool _active
-    ) external;
-
-    function stakerAddressInfo(address _addr) external view returns(
-        Node memory node
-    );
-}
+import "./IMuonNodeManager.sol";
 
 contract MuonNodeStaking is AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -47,7 +20,7 @@ contract MuonNodeStaking is AccessControl {
 
     IERC20 public muonToken;
 
-    IMuonNodeManager nodeManager;
+    IMuonNodeManager public nodeManager;
 
     uint256 public totalStaked;
 
