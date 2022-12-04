@@ -12,8 +12,9 @@ contract MuonNodeStaking is AccessControl {
 
     struct User{
         uint256 balance;
-        // uint256 paidReward;
-        // uint256 paidRewardPerToken;
+        uint256 paidReward;
+        uint256 paidRewardPerToken;
+        uint256 pendingRewards;
     }
 
     mapping (address => User) public users;
@@ -34,6 +35,23 @@ contract MuonNodeStaking is AccessControl {
     // min stake amount for the nodes
     uint256 public nodeMinStakeAmount = 1000 ether;
 
+    uint256 public PERIOD = 30 days;
+
+    uint256 public periodFinish;
+    uint256 public rewardRate;
+    uint256 public lastUpdateTime;
+    uint256 public rewardPerTokenStored;
+
+    modifier updateReward(address _forAddress) {
+        rewardPerTokenStored = rewardPerToken();
+        lastUpdateTime = lastTimeRewardApplicable();
+        if (_forAddress != address(0)) {
+            users[_forAddress].pendingRewards = earned(_forAddress);
+            users[_forAddress].paidRewardPerToken = rewardPerTokenStored;
+        }
+        _;
+    }
+
     constructor(
         address muonTokenAddress,
         address nodeManagerAddress
@@ -46,24 +64,43 @@ contract MuonNodeStaking is AccessControl {
         nodeManager = IMuonNodeManager(nodeManagerAddress);
     }
 
-    function stake(uint256 amount) public{
+    function stake(uint256 amount) public updateReward(msg.sender){
         muonToken.transferFrom(msg.sender, address(this), amount);
         users[msg.sender].balance += amount;
         totalStaked += amount;
     }
 
-    function unstake(uint256 amount) public{
+    // function unstake(uint256 amount) public updateReward(msg.sender){
+    //     IMuonNodeManager.Node memory node = nodeManager.stakerAddressInfo(msg.sender);
+    //     require(
+    //         node.id == 0 || // not added a node yet
+    //         // node is deactived `unstakePendingPeriod` secs ago on the NodeManager
+    //         (!node.active && node.endTime < (block.timestamp + unstakePendingPeriod) )
+    //     );
+    //     totalStaked -= amount;
+    //     users[msg.sender].balance -= amount;
+
+    //     muonToken.transfer(msg.sender, amount);
+    // }
+
+    function exit() public updateReward(msg.sender) {
         IMuonNodeManager.Node memory node = nodeManager.stakerAddressInfo(msg.sender);
         require(
             node.id == 0 || // not added a node yet
             // node is deactived `unstakePendingPeriod` secs ago on the NodeManager
             (!node.active && node.endTime < (block.timestamp + unstakePendingPeriod) )
         );
-        totalStaked -= amount;
-        users[msg.sender].balance -= amount;
+
+        uint256 amount = earned(msg.sender) + users[msg.sender].balance;
+        require(amount > 0, 'amount=0');
+
+        totalStaked -= users[msg.sender].balance;
+
+        users[msg.sender].balance = 0;
+        users[msg.sender].pendingRewards = 0;
 
         muonToken.transfer(msg.sender, amount);
-    }
+    }    
 
     /**
      * @dev A staker who have staked enough token
@@ -85,5 +122,34 @@ contract MuonNodeStaking is AccessControl {
             peerId,
             true // active
         );
+    }
+
+    function notifyReward(uint256 reward) public updateReward(address(0)){
+        if (block.timestamp >= periodFinish) {
+            rewardRate = reward / PERIOD;
+        } else {
+            uint256 remaining = periodFinish - block.timestamp;
+            uint256 leftover = remaining * rewardRate;
+            rewardRate = (reward + leftover) / PERIOD;
+        }
+        lastUpdateTime = block.timestamp;
+        periodFinish = block.timestamp + PERIOD;
+    }
+
+    function rewardPerToken() public view returns(uint256) {
+        return totalStaked == 0 ? rewardPerTokenStored :
+            rewardPerTokenStored + (
+                (lastTimeRewardApplicable() - lastUpdateTime)*rewardRate*1e18/totalStaked
+            );
+    }
+
+    function earned(address account) public view returns(uint256) {
+        return users[account].balance*(
+            rewardPerToken() - users[account].paidRewardPerToken
+        )/1e18 + users[account].pendingRewards;
+    }
+
+    function lastTimeRewardApplicable() public view returns(uint256) {
+        return block.timestamp < periodFinish ? block.timestamp : periodFinish;
     }
 }
