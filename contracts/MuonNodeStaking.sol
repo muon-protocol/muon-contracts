@@ -6,6 +6,9 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IMuonNodeManager.sol";
 
+//TODO: rewards for exit nodes should be calculated based
+//on the exist request time
+
 contract MuonNodeStaking is AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant DAO_ROLE = keccak256("DAO_ROLE");
@@ -32,8 +35,8 @@ contract MuonNodeStaking is AccessControl {
     // to be able to unstake
     uint256 public unstakePendingPeriod = 7 days;
 
-    // min stake amount for the nodes
-    uint256 public nodeMinStakeAmount = 1000 ether;
+    uint256 public minStakeAmountPerNode = 1000 ether;
+    uint256 public maxStakeAmountPerNode = 10000 ether;
 
     uint256 public PERIOD = 30 days;
 
@@ -64,7 +67,22 @@ contract MuonNodeStaking is AccessControl {
         nodeManager = IMuonNodeManager(nodeManagerAddress);
     }
 
-    function stake(uint256 amount) public updateReward(msg.sender){
+    /**
+     * @dev Existing nodes can stake more using this method.
+     * The total staked amount should be less 
+     * than "maxStakeAmountPerNode"
+     */
+    function stakeMore(uint256 amount) public{
+        IMuonNodeManager.Node memory node = nodeManager.stakerAddressInfo(msg.sender);
+        require(node.id != 0 && node.active, "No active node");
+        require(
+            amount + users[msg.sender].balance <= maxStakeAmountPerNode,
+            ">maxStakeAmountPerNode"
+        );
+        _stake(amount);
+    }
+
+    function _stake(uint256 amount) private updateReward(msg.sender){
         muonToken.transferFrom(msg.sender, address(this), amount);
         users[msg.sender].balance += amount;
         totalStaked += amount;
@@ -103,19 +121,20 @@ contract MuonNodeStaking is AccessControl {
     }    
 
     /**
-     * @dev A staker who have staked enough token
-     * can add a node to the NodeManager.
-     * NodeManager contract should grant ADMIN_ROLE access
-     * to the NodeStaking contract.
+     * @dev Lets the users stake 
+     * minimum "minStakeAmountPerNode" tokens
+     * to run a node.
      */
     function addMuonNode(
         address nodeAddress, 
-        string calldata peerId
-    ) public{
+        string calldata peerId,
+        uint256 intialStakeAmount
+    ) public {
         require(
-            users[msg.sender].balance >= nodeMinStakeAmount,
-            "staked amount is not enough for running a node"
+            intialStakeAmount >= minStakeAmountPerNode,
+            "intialStakeAmount is not enough for running a node"
         );
+        _stake(intialStakeAmount);
         nodeManager.addNode(
             nodeAddress,
             msg.sender, // stakerAddress,
@@ -124,6 +143,7 @@ contract MuonNodeStaking is AccessControl {
         );
     }
 
+    // TODO: who can call this?
     function notifyReward(uint256 reward) public updateReward(address(0)){
         if (block.timestamp >= periodFinish) {
             rewardRate = reward / PERIOD;
