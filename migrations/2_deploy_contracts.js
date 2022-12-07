@@ -19,6 +19,9 @@ function parseArgv() {
  * Deploy MuonNodeManager:
  * ./node_modules/.bin/truffle deploy --network=development --node-manager --nodes=../nodes.json --deployer
  *
+ * Verify MuonNodeManager
+ * truffle run verify MuonNodeManager@<contract address> --network mumbai
+ *
  * Deploy Token:
  * ./node_modules/.bin/truffle deploy --network=development --token
  *
