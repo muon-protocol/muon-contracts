@@ -12,25 +12,55 @@ web3.eth.defaultAccount = acc.address;
 
 var contract = new web3.eth.Contract(ABI, contractAddress);
 
-if(process.argv.length != 5){
-    console.log("Usage: add_node.js <nodeAddress> <stakerAddress> <peerId>");
+function parseBool(val) {
+    val = val.toString().toLowerCase();
+    return val === '1' || val === 'true'
+}
+
+if(process.argv.length != 7){
+    console.log("Usage: add_node.js <nodeAddress> <stakerAddress> <peerId> <active> <isDeployer>");
     process.exit(1)
 }
-contract.methods
-    .addNode(
-        process.argv[2], // nodeAddress
-        process.argv[3], // stakerAddress
-        process.argv[4],
-        true // active
-    )
-    .send({
-        from: acc.address,
-        gas: 1000000,
-    })
-    .then((x) => {
-        console.log("Done. TX Hash: ", x.transactionHash);
-    })
-    .catch((err) => {
-        console.log(err);
-        process.exit(1);
-    });
+
+async function addNodeToNetwork() {
+    const nodeAddress = process.argv[2],
+      stakerAddress = process.argv[3],
+      peerId = process.argv[4],
+      active = parseBool(process.argv[5]),
+      isDeployer = parseBool(process.argv[6]);
+
+    let tx = await contract.methods
+      .addNode(
+        nodeAddress, // nodeAddress
+        stakerAddress, // stakerAddress
+        peerId,
+        active // active
+      )
+      .send({
+          from: acc.address,
+          gas: 1000000,
+      })
+    console.log("Add TX Hash: ", tx.transactionHash);
+
+    if(isDeployer) {
+        const nodeInfo = await contract.methods.nodeAddressInfo(nodeAddress).call();
+        const tx = await contract.methods
+          .setIsDeployer(nodeInfo.id, isDeployer)
+          .send({
+              from: acc.address,
+              gas: 1000000,
+          })
+        console.log("setDeployer TX Hash: ", tx.transactionHash);
+    }
+}
+
+addNodeToNetwork()
+  .then(() => {
+      console.log('done.')
+  })
+  .catch((err) => {
+      console.log(err);
+  })
+  .then(() => {
+      process.exit(1);
+  })
