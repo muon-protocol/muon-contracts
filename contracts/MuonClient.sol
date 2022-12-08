@@ -9,6 +9,8 @@ contract MuonClient is MuonClientBase {
         uint256 _muonAppId,
         PublicKey memory _muonPublicKey
     ){
+        validatePubKey(_muonPublicKey.x);
+
         muonAppId = _muonAppId;
         muonPublicKey = _muonPublicKey;
     }
