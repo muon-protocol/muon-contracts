@@ -6,18 +6,22 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IMuonNodeManager.sol";
 
-//TODO: rewards for exit nodes should be calculated based
-//on the exist request time
+
+// TODO: auto compunding
 
 contract MuonNodeStaking is AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant DAO_ROLE = keccak256("DAO_ROLE");
+
+    bytes32 public constant REWARD_ROLE = keccak256("REWARD_ROLE");
 
     struct User{
         uint256 balance;
         uint256 paidReward;
         uint256 paidRewardPerToken;
         uint256 pendingRewards;
+
+        uint256 withdrawable;
     }
 
     mapping (address => User) public users;
@@ -33,12 +37,12 @@ contract MuonNodeStaking is AccessControl {
     // Nodes should deactive their nodes on
     // NodeManager first and wait for some time
     // to be able to unstake
-    uint256 public unstakePendingPeriod = 7 days;
+    uint256 public exitPendingPeriod = 7 days;
 
     uint256 public minStakeAmountPerNode = 1000 ether;
     uint256 public maxStakeAmountPerNode = 10000 ether;
 
-    uint256 public PERIOD = 30 days;
+    uint256 public REWARD_PERIOD = 30 days;
 
     uint256 public periodFinish;
     uint256 public rewardRate;
@@ -88,37 +92,37 @@ contract MuonNodeStaking is AccessControl {
         totalStaked += amount;
     }
 
-    // function unstake(uint256 amount) public updateReward(msg.sender){
-    //     IMuonNodeManager.Node memory node = nodeManager.stakerAddressInfo(msg.sender);
-    //     require(
-    //         node.id == 0 || // not added a node yet
-    //         // node is deactived `unstakePendingPeriod` secs ago on the NodeManager
-    //         (!node.active && node.endTime < (block.timestamp + unstakePendingPeriod) )
-    //     );
-    //     totalStaked -= amount;
-    //     users[msg.sender].balance -= amount;
-
-    //     muonToken.transfer(msg.sender, amount);
-    // }
-
-    function exit() public updateReward(msg.sender) {
+    function withdraw() public{
         IMuonNodeManager.Node memory node = nodeManager.stakerAddressInfo(msg.sender);
         require(
-            node.id == 0 || // not added a node yet
-            // node is deactived `unstakePendingPeriod` secs ago on the NodeManager
-            (!node.active && node.endTime < (block.timestamp + unstakePendingPeriod) )
+            !node.active && node.endTime < (block.timestamp + exitPendingPeriod),
+            "Exit time not reached yet"
         );
+        uint256 amount = users[msg.sender].withdrawable;
+        require(amount > 0, "withdrawable=0");
+        muonToken.transfer(msg.sender, amount);
+
+        users[msg.sender].withdrawable = 0;
+    }
+
+    function requestExit() public updateReward(msg.sender) {
+        IMuonNodeManager.Node memory node = nodeManager.stakerAddressInfo(msg.sender);
+        require(node.id != 0, "Node not found");
+        // TODO: force nodes to be in the network for a minimum time
 
         uint256 amount = earned(msg.sender) + users[msg.sender].balance;
-        require(amount > 0, 'amount=0');
+        require(amount > 0, "amount=0");
 
         totalStaked -= users[msg.sender].balance;
 
         users[msg.sender].balance = 0;
         users[msg.sender].pendingRewards = 0;
+        users[msg.sender].paidReward = 0;
 
-        muonToken.transfer(msg.sender, amount);
-    }    
+        users[msg.sender].withdrawable = amount;
+
+        // TODO: deactive the node on nodeManager
+    }
 
     /**
      * @dev Lets the users stake 
@@ -143,17 +147,19 @@ contract MuonNodeStaking is AccessControl {
         );
     }
 
-    // TODO: who can call this?
-    function notifyReward(uint256 reward) public updateReward(address(0)){
+    function distributeReward(uint256 reward) public 
+        updateReward(address(0)) 
+        onlyRole(REWARD_ROLE)
+    {
         if (block.timestamp >= periodFinish) {
-            rewardRate = reward / PERIOD;
+            rewardRate = reward / REWARD_PERIOD;
         } else {
             uint256 remaining = periodFinish - block.timestamp;
             uint256 leftover = remaining * rewardRate;
-            rewardRate = (reward + leftover) / PERIOD;
+            rewardRate = (reward + leftover) / REWARD_PERIOD;
         }
         lastUpdateTime = block.timestamp;
-        periodFinish = block.timestamp + PERIOD;
+        periodFinish = block.timestamp + REWARD_PERIOD;
     }
 
     function rewardPerToken() public view returns(uint256) {
