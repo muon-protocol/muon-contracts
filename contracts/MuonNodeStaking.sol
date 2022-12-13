@@ -7,7 +7,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IMuonNodeManager.sol";
 
 
-// TODO: auto compunding
+// TODOs: 
+// 1- auto compunding
+// 2- add events
+// 3- allow the DAO to edit the configs
 
 contract MuonNodeStaking is AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -121,7 +124,7 @@ contract MuonNodeStaking is AccessControl {
 
         users[msg.sender].withdrawable = amount;
 
-        // TODO: deactive the node on nodeManager
+        nodeManager.deactiveNode(node.id);
     }
 
     /**
@@ -147,7 +150,7 @@ contract MuonNodeStaking is AccessControl {
         );
     }
 
-    function distributeReward(uint256 reward) public 
+    function distributeRewards(uint256 reward) public 
         updateReward(address(0)) 
         onlyRole(REWARD_ROLE)
     {

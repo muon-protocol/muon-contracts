@@ -92,12 +92,7 @@ contract MuonNodeManager is AccessControl, IMuonNodeManager {
      */
     function deactiveNode(
         uint64 nodeId
-    ) public updateState{
-        require(
-            msg.sender == nodes[nodeId].stakerAddress ||
-            msg.sender == nodes[nodeId].nodeAddress,
-            "Access Denied"
-        );
+    ) public override onlyRole(ADMIN_ROLE) updateState{
         require(nodes[nodeId].active, "Already deactived");
 
         nodes[nodeId].endTime = block.timestamp;

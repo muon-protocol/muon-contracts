@@ -25,6 +25,8 @@ interface IMuonNodeManager {
         bool _active
     ) external;
 
+    function deactiveNode(uint64 nodeId) external;
+
     function stakerAddressInfo(address _addr) external view returns(
         Node memory node
     );
