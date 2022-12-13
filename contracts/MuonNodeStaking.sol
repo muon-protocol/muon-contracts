@@ -12,6 +12,27 @@ import "./IMuonNodeManager.sol";
 // 2- add events
 // 3- allow the DAO to edit the configs
 
+/**
+ * @dev Staking contracts for the Muon Nodes
+ *
+ * Important functions:
+ * 
+ * - addMuonNode
+ * Lets the users stake more than a predefined minimum 
+ * amount of tokens and add a node.
+ *
+ * - stakeMore
+ * Existing nodes can stake more. The rewards will be distributed
+ * based on the staked amounts
+ *
+ * - requestExit
+ * Nodes that want to exit the network, need to call this function
+ * to remove their nodes from the network. The staked amount will be
+ * kept in the contract for a period and then they can withdraw 
+ *
+ * - withdraw
+ * Lets the users withdraw their staked amount + total rewards
+ */
 contract MuonNodeStaking is AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant DAO_ROLE = keccak256("DAO_ROLE");
