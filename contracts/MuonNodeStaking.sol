@@ -15,7 +15,6 @@ import "./IMuonNodeManager.sol";
 contract MuonNodeStaking is AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant DAO_ROLE = keccak256("DAO_ROLE");
-
     bytes32 public constant REWARD_ROLE = keccak256("REWARD_ROLE");
 
     struct User{
@@ -52,6 +51,12 @@ contract MuonNodeStaking is AccessControl {
     uint256 public lastUpdateTime;
     uint256 public rewardPerTokenStored;
 
+    /**
+     * @dev Modifier that updates the reward parameters
+     * before all of the functions that can change the rewards.
+     *
+     * `_forAddress` should be address(0) when new rewards are distributing.
+     */
     modifier updateReward(address _forAddress) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
@@ -62,6 +67,9 @@ contract MuonNodeStaking is AccessControl {
         _;
     }
 
+    /**
+     * @dev Sets the muonToken and nodeManager
+     */
     constructor(
         address muonTokenAddress,
         address nodeManagerAddress
@@ -77,7 +85,7 @@ contract MuonNodeStaking is AccessControl {
     /**
      * @dev Existing nodes can stake more using this method.
      * The total staked amount should be less 
-     * than "maxStakeAmountPerNode"
+     * than `maxStakeAmountPerNode`
      */
     function stakeMore(uint256 amount) public{
         IMuonNodeManager.Node memory node = nodeManager.stakerAddressInfo(msg.sender);
@@ -95,6 +103,13 @@ contract MuonNodeStaking is AccessControl {
         totalStaked += amount;
     }
 
+    /**
+     * @dev Allows the users to withdraw
+     *
+     * Users should {requestExit} first. Their nodes will
+     * be deatived and after `exitPendingPeriod` secs, they can
+     * withdraw
+     */
     function withdraw() public{
         IMuonNodeManager.Node memory node = nodeManager.stakerAddressInfo(msg.sender);
         require(
@@ -108,6 +123,10 @@ contract MuonNodeStaking is AccessControl {
         users[msg.sender].withdrawable = 0;
     }
 
+    /**
+     * @dev Allows the users to request to exit their nodes 
+     * from the nework
+     */
     function requestExit() public updateReward(msg.sender) {
         IMuonNodeManager.Node memory node = nodeManager.stakerAddressInfo(msg.sender);
         require(node.id != 0, "Node not found");
@@ -129,7 +148,7 @@ contract MuonNodeStaking is AccessControl {
 
     /**
      * @dev Lets the users stake 
-     * minimum "minStakeAmountPerNode" tokens
+     * minimum `minStakeAmountPerNode` tokens
      * to run a node.
      */
     function addMuonNode(
@@ -150,6 +169,13 @@ contract MuonNodeStaking is AccessControl {
         );
     }
 
+    /**
+     * @dev A wallet/contract that has REWARD_ROLE access 
+     * can call this function to distribute the rewards.
+     *
+     * Tokens should be transferred to the contract before 
+     * calling this function.
+     */
     function distributeRewards(uint256 reward) public 
         updateReward(address(0)) 
         onlyRole(REWARD_ROLE)
@@ -165,6 +191,9 @@ contract MuonNodeStaking is AccessControl {
         periodFinish = block.timestamp + REWARD_PERIOD;
     }
 
+    /**
+     * @dev Calculates rewardPerToken until now
+     */
     function rewardPerToken() public view returns(uint256) {
         return totalStaked == 0 ? rewardPerTokenStored :
             rewardPerTokenStored + (
@@ -172,12 +201,18 @@ contract MuonNodeStaking is AccessControl {
             );
     }
 
+    /**
+     * @dev Total rewards for an `account`
+     */
     function earned(address account) public view returns(uint256) {
         return users[account].balance*(
             rewardPerToken() - users[account].paidRewardPerToken
         )/1e18 + users[account].pendingRewards;
     }
 
+    /**
+     * @dev Last time of the current reward period
+     */
     function lastTimeRewardApplicable() public view returns(uint256) {
         return block.timestamp < periodFinish ? block.timestamp : periodFinish;
     }
