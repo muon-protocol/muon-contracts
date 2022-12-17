@@ -237,4 +237,18 @@ contract MuonNodeStaking is AccessControl {
     function lastTimeRewardApplicable() public view returns(uint256) {
         return block.timestamp < periodFinish ? block.timestamp : periodFinish;
     }
+
+    // ======== DAO functions ====================
+
+    function setExitPendingPeriod(uint256 val) public onlyRole(DAO_ROLE){
+        exitPendingPeriod = val;    
+    }
+    
+    function setMinStakeAmountPerNode(uint256 val) public onlyRole(DAO_ROLE){
+        minStakeAmountPerNode = val;    
+    }
+
+    function setMaxStakeAmountPerNode(uint256 val) public onlyRole(DAO_ROLE){
+        maxStakeAmountPerNode = val;    
+    }
 }
