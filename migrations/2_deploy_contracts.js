@@ -45,10 +45,12 @@ module.exports = async function (deployer) {
                     true
                 );
             }
-            if ("--deployer") {
+            if (args["deployer"]) {
                 for (i = 0; i < nodes.length; i++) {
-                    console.log(`Set isDeployer for ${nodes[i][1]}`);
-                    await nodeManagerDeployed.setIsDeployer(i + 1, true);
+                    if(nodes[i][8]){
+                        console.log(`Set isDeployer for ${nodes[i][1]}`);
+                        await nodeManagerDeployed.setIsDeployer(i + 1, true);
+                    }
                 }
             }
         }
