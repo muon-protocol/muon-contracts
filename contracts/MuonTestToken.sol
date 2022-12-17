@@ -8,12 +8,22 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract MuonTestToken is ERC20, AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
-    constructor() ERC20("Muon TestNet", "MU-TEST"){
+    bool public allowPublicMint = true;
+
+    constructor() ERC20("Alice", "ALICE"){
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(ADMIN_ROLE, msg.sender);
     }
 
     function mint(address account, uint256 amount) public {
-      _mint(account, amount);
+        require(
+            allowPublicMint || hasRole(ADMIN_ROLE, msg.sender),
+            "Access Denied"
+        );
+        _mint(account, amount);
+    }
+
+    function setPublicMint(bool val) public onlyRole(ADMIN_ROLE){
+        allowPublicMint = val;
     }
 }
