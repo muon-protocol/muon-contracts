@@ -29,20 +29,20 @@ contract ImmutableClientExample is MuonClient {
         PublicKey memory _muonPublicKey,
         bytes memory _muonAppCID
     ) MuonClient(_muonAppId, _muonPublicKey){
+
         muonAppCID = _muonAppCID;
     }
 
     function testFunction(
         uint256 testParam,
         bytes calldata reqId,
-        bytes calldata appCID,
         SchnorrSign calldata sign
     ) public {
         bytes32 hash = keccak256(
             abi.encodePacked(
                 muonAppId,
                 reqId,
-                appCID,
+                muonAppCID,
                 testParam
             )
         );
