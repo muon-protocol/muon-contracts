@@ -181,6 +181,10 @@ contract MuonNodeStaking is AccessControl {
             intialStakeAmount >= minStakeAmountPerNode,
             "intialStakeAmount is not enough for running a node"
         );
+        require(
+            intialStakeAmount <= maxStakeAmountPerNode,
+            ">maxStakeAmountPerNode"
+        );
         _stake(intialStakeAmount);
         nodeManager.addNode(
             nodeAddress,
