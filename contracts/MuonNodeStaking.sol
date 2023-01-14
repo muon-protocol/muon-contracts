@@ -134,7 +134,7 @@ contract MuonNodeStaking is AccessControl {
     function withdraw() public{
         IMuonNodeManager.Node memory node = nodeManager.stakerAddressInfo(msg.sender);
         require(
-            !node.active && node.endTime < (block.timestamp + exitPendingPeriod),
+            !node.active && (node.endTime + exitPendingPeriod) < block.timestamp,
             "Exit time not reached yet"
         );
         uint256 amount = users[msg.sender].withdrawable;
