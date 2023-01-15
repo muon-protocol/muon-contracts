@@ -1,6 +1,10 @@
 const nodeManager = artifacts.require("MuonNodeManager.sol");
 const nodeStaking = artifacts.require("MuonNodeStaking.sol");
 const token = artifacts.require("MuonTestToken.sol");
+const { deployProxy } = require("@openzeppelin/truffle-upgrades");
+const nodeStakingUpgradeable = artifacts.require(
+    "MuonNodeStakingUpgradeable.sol"
+);
 
 const { toBN } = web3.utils;
 
@@ -47,7 +51,7 @@ module.exports = async function (deployer) {
             }
             if (args["deployer"]) {
                 for (i = 0; i < nodes.length; i++) {
-                    if(nodes[i][8]){
+                    if (nodes[i][8]) {
                         console.log(`Set isDeployer for ${nodes[i][1]}`);
                         await nodeManagerDeployed.setIsDeployer(i + 1, true);
                     }
@@ -65,6 +69,14 @@ module.exports = async function (deployer) {
             nodeStaking,
             args["token-addr"],
             args["node-manager-addr"]
+        );
+    }
+
+    if (args["node-staking-upgradeable"]) {
+        await await deployProxy(
+            nodeStakingUpgradeable,
+            [args["token-addr"], args["node-manager-addr"]],
+            { deployer }
         );
     }
 };
