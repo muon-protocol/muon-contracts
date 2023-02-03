@@ -26,7 +26,6 @@
 
 require('dotenv').config()
 const HDWalletProvider = require('@truffle/hdwallet-provider')
-console.log('https://ropsten.infura.io/v3/' + process.env.INFURA_KEY)
 module.exports = {
   /**
    * Networks define how you connect to your ethereum client and let you set the

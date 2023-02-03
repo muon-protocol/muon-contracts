@@ -1,6 +1,7 @@
 const nodeManager = artifacts.require("MuonNodeManager.sol");
 const nodeStaking = artifacts.require("MuonNodeStaking.sol");
 const token = artifacts.require("MuonTestToken.sol");
+const pagination = artifacts.require("MuonNodesPagination.sol");
 const { deployProxy } = require("@openzeppelin/truffle-upgrades");
 const nodeStakingUpgradeable = artifacts.require(
     "MuonNodeStakingUpgradeable.sol"
@@ -31,6 +32,9 @@ function parseArgv() {
  *
  * Deploy MounNodeStaking:
  * ./node_modules/.bin/truffle deploy --node-staking --token-addr=0x-token --node-manager-addr=0x-node-manager
+ *
+ * Deploy MounNodesPagination:
+ * ./node_modules/.bin/truffle deploy --pagination --node-manager-addr=0x-node-manager
  */
 module.exports = async function (deployer) {
     let args = parseArgv();
@@ -76,6 +80,14 @@ module.exports = async function (deployer) {
         await await deployProxy(
             nodeStakingUpgradeable,
             [args["token-addr"], args["node-manager-addr"]],
+            { deployer }
+        );
+    }
+
+    if (args["pagination"]) {
+        await await deployProxy(
+            pagination,
+            [args["node-manager-addr"]],
             { deployer }
         );
     }
