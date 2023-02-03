@@ -4,7 +4,7 @@ pragma solidity >=0.7.0 <0.9.0;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./MuonNodeManager.sol";
 
-contract MuonNodesPagination is AccessControl {
+contract MuonNodesReport is AccessControl {
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
