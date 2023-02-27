@@ -1,7 +1,7 @@
 const nodeManager = artifacts.require("MuonNodeManager.sol");
 const nodeStaking = artifacts.require("MuonNodeStaking.sol");
 const token = artifacts.require("MuonTestToken.sol");
-const pagination = artifacts.require("MuonNodesPagination.sol");
+const pagination = artifacts.require("MuonNodesReport.sol");
 const { deployProxy } = require("@openzeppelin/truffle-upgrades");
 const nodeStakingUpgradeable = artifacts.require(
     "MuonNodeStakingUpgradeable.sol"
