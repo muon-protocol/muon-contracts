@@ -34,7 +34,12 @@ contract MuonFeeUpgradeable is Initializable, AccessControlUpgradeable {
 
     IERC20 public muonToken;
 
-    event Deposit(address indexed addr, uint256 amount, address payer);
+    event Deposit(
+        address indexed addr,
+        uint256 amount,
+        uint256 balance,
+        address payer
+    );
 
     function __MuonFeeUpgradeable_init(
         address muonTokenAddress
@@ -63,7 +68,7 @@ contract MuonFeeUpgradeable is Initializable, AccessControlUpgradeable {
     function depositFor(address forAddress, uint256 amount) public{
         muonToken.transferFrom(msg.sender, address(this), amount);
         users[forAddress].balance += amount;
-        emit Deposit(forAddress, amount, msg.sender);
+        emit Deposit(forAddress, amount, users[forAddress].balance, msg.sender);
     }
 
     function withdraw(uint256 amount) public{

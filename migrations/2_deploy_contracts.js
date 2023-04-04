@@ -3,8 +3,13 @@ const nodeStaking = artifacts.require("MuonNodeStaking.sol");
 const token = artifacts.require("MuonTestToken.sol");
 const report = artifacts.require("MuonNodesReport.sol");
 const { deployProxy } = require("@openzeppelin/truffle-upgrades");
+
 const nodeStakingUpgradeable = artifacts.require(
     "MuonNodeStakingUpgradeable.sol"
+);
+
+const MuonFeeUpgradeable = artifacts.require(
+    "MuonFeeUpgradeable.sol"
 );
 
 const { toBN } = web3.utils;
@@ -80,6 +85,14 @@ module.exports = async function (deployer) {
         await await deployProxy(
             nodeStakingUpgradeable,
             [args["token-addr"], args["node-manager-addr"]],
+            { deployer }
+        );
+    }
+
+    if (args["fee-upgradeable"]) {
+        await await deployProxy(
+            MuonFeeUpgradeable,
+            [args["token-addr"]],
             { deployer }
         );
     }

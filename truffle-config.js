@@ -106,15 +106,15 @@ module.exports = {
       provider: () =>
         new HDWalletProvider(
           process.env.PK,
-          //`https://data-seed-prebsc-1-s2.binance.org:8545`
-          "https://rpc.ankr.com/bsc_testnet_chapel"
+          `https://data-seed-prebsc-1-s2.binance.org:8545`
+          //"https://rpc.ankr.com/bsc_testnet_chapel"
         ),
       network_id: 97,
-      confirmations: 2,
-      timeoutBlocks: 200,
       //gasPrice: 5500000000,
       skipDryRun: true,
-      networkCheckTimeout: 10000000
+      networkCheckTimeout: 10000000,
+      confirmations: 0,    
+      timeoutBlocks: 2000, 
     },
 
     bsc: {
