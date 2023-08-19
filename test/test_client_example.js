@@ -4,19 +4,11 @@ const truffleAssert = require('truffle-assertions');
 const {expect, muonNode} = require('./helpers')
 const {toBN} = web3.utils;
 
-const pubKeyAddress = process.env.MUON_MASTER_WALLET_PUB_ADDRESS;
-const pubKeyX = process.env.MUON_MASTER_WALLET_PUB_X;
-const pubKeyYParity = process.env.MUON_MASTER_WALLET_PUB_Y_PARITY;
-const tssAppId = process.env.MUON_TSS_APP_ID;
-
-console.log({pubKeyX, pubKeyYParity})
-
-
 contract("MuonClientExample", (accounts) => {
     let owner=accounts[9], v4Example, muonResponse;
 
     before(async () => {
-        muonResponse = await muonNode.request({app: 'tss2', method: 'test'})
+        muonResponse = await muonNode.request({app: 'tss', method: 'test'})
         // console.log(muonResponse);
         let {success, result} = muonResponse;
         console.log(result.appId, {
